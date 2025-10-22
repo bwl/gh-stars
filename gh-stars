@@ -10,8 +10,8 @@ fi
 printf "\033[1m%-40s %-8s %-15s %s\033[0m\n" "Repository" "Stars" "Language" "URL"
 printf "%-40s %-8s %-15s %s\n" "----------" "-----" "---------" "-------------------"
 
-# Print each row
+# Safe row print
 gh api user/starred --paginate --jq -r '.[] | [.full_name, (.stargazers_count|tostring), (.language // "—"), .html_url] | @tsv' |
-while IFS=$'\t' read -r repo stars lang url; do
-  printf "%-40s %-8s %-15s %s\n" "$repo" "$stars" "$lang" "$url"
+while IFS=$'\t' read -r repo stars lang url || [[ -n "${repo:-}" ]]; do
+  printf "%-40.40s %-8s %-15.15s %s\n" "$repo" "$stars" "$lang" "$url"
 done
