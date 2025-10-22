@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# gh-stars: list starred repositories using GitHub CLI
+# Usage: gh stars [--json]  
+if [[ "$1" == "--json" ]]; then
+  gh api user/starred --paginate --jq '.[] | {full_name: .full_name, stargazers_count: .stargazers_count, language: .language, url: .html_url}'
+else
+  gh api user/starred --paginate --jq '.[] | [.full_name, .stargazers_count, .language, .html_url] | @tsv'
+fi
