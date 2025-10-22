@@ -2,7 +2,11 @@
 # gh-stars: list starred repositories using GitHub CLI
 # Usage: gh stars [--json]  
 if [[ "$1" == "--json" ]]; then
+  # Output JSON objects with key fields
   gh api user/starred --paginate --jq '.[] | {full_name: .full_name, stargazers_count: .stargazers_count, language: .language, url: .html_url}'
 else
-  gh api user/starred --paginate --jq '.[] | [.full_name, .stargazers_count, .language, .html_url] | @tsv'
+  # Print a formatted table header
+  printf "%-40s %-7s %-15s %s\n" "Repository" "Stars" "Language" "URL"
+  # Fetch data and format rows as tab-separated, then align columns
+  gh api user/starred --paginate --jq '.[] | [.full_name, (.stargazers_count // 0 | tostring), (.language // "-"), .html_url] | @tsv' | column -t -s $'\t'
 fi
