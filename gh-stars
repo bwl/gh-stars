@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# gh-stars: list starred repositories using GitHub CLI
-# Usage: gh stars [--json]  
-if [[ "$1" == "--json" ]]; then
-  # Output JSON objects with key fields
-  gh api user/starred --paginate --jq '.[] | {full_name: .full_name, stargazers_count: .stargazers_count, language: .language, url: .html_url}'
-else
-  # Print a formatted table header
-  printf "%-40s %-7s %-15s %s\n" "Repository" "Stars" "Language" "URL"
-  # Fetch data and format rows as tab-separated, then align columns
-  gh api user/starred --paginate --jq '.[] | [.full_name, (.stargazers_count // 0 | tostring), (.language // "-"), .html_url] | @tsv' | column -t -s $'\t'
+set -euo pipefail
+
+if [[ "${1:-}" == "--json" ]]; then
+  gh api user/starred --paginate --jq '.[] | {name: .full_name, stars: .stargazers_count, language: .language, url: .html_url}'
+  exit 0
 fi
+
+# Print header
+printf "\033[1m%-40s %-8s %-15s %s\033[0m\n" "Repository" "Stars" "Language" "URL"
+printf "%-40s %-8s %-15s %s\n" "----------" "-----" "---------" "-------------------"
+
+# Print each row
+gh api user/starred --paginate --jq -r '.[] | [.full_name, (.stargazers_count|tostring), (.language // "—"), .html_url] | @tsv' |
+while IFS=$'\t' read -r repo stars lang url; do
+  printf "%-40s %-8s %-15s %s\n" "$repo" "$stars" "$lang" "$url"
+done
